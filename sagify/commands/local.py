@@ -22,6 +22,23 @@ def local():
     pass
 
 
+def train_helper(dir):
+    sagify_module_path = os.path.join(dir, 'sagify')
+    local_train_script_path = os.path.join(sagify_module_path, 'local_test', 'train_local.sh')
+    test_path = os.path.join(sagify_module_path, 'local_test', 'test_dir')
+
+    if not os.path.isdir(test_path):
+        logger.info("This is not a sagify directory: {}".format(dir))
+        sys.exit(-1)
+
+    subprocess.check_output(
+        [
+            "{}".format(local_train_script_path),
+            "{}".format(os.path.abspath(test_path))
+        ]
+    )
+
+
 @click.command()
 @click.option(u"-d", u"--dir", required=False, default='.', help="Path to sagify module")
 def train(dir):
@@ -31,21 +48,8 @@ def train(dir):
     logger.info(ASCII_LOGO)
     logger.info("Started local training...\n")
 
-    sagify_module_path = os.path.join(dir, 'sagify')
-    local_train_script_path = os.path.join(sagify_module_path, 'local_test', 'train_local.sh')
-    test_path = os.path.join(sagify_module_path, 'local_test', 'test_dir')
-
-    if not os.path.isdir(test_path):
-        logger.info("This is not a sagify directory: {}".format(dir))
-        sys.exit(-1)
-
     try:
-        subprocess.check_output(
-            [
-                "{}".format(local_train_script_path),
-                "{}".format(os.path.abspath(test_path))
-            ]
-        )
+        train_helper(dir)
 
         logger.info("Local training completed successfully!")
     except Exception as e:

@@ -124,14 +124,7 @@ def template_creation(app_name, aws_profile, aws_region, python_version, output_
     )
 
 
-@click.command()
-@click.option(u"-d", u"--dir", required=False, default='.', help="Path to create sagify module")
-def init(dir):
-    """
-    Command to initialize SageMaker template
-    """
-    logger.info(ASCII_LOGO)
-
+def init_helper(dir):
     sagify_app_name = ask_for_app_name()
 
     python_version = ask_for_python_version()
@@ -145,5 +138,16 @@ def init(dir):
         python_version=python_version,
         output_dir=dir
     )
+
+
+@click.command()
+@click.option(u"-d", u"--dir", required=False, default='.', help="Path to create sagify module")
+def init(dir):
+    """
+    Command to initialize SageMaker template
+    """
+    logger.info(ASCII_LOGO)
+
+    init_helper(dir)
 
     logger.info("\nsagify module is created! ヽ(´▽`)/")

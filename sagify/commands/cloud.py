@@ -65,6 +65,24 @@ def upload_data(dir, input_dir, s3_dir):
     logger.info("Data uploaded to {} successfully".format(s3_path))
 
 
+def train_helper(dir, input_s3_dir, output_s3_dir, hyperparams_file, ec2_type, volume_size, time_out):
+    config = _read_config(dir)
+    hyperparams_dict = _read_hyperparams_config(hyperparams_file) if hyperparams_file else None
+    sage_maker_client = sagemaker.SageMakerClient(config.aws_profile, config.aws_region)
+    s3_model_location = sage_maker_client.train(
+        image_name=config.image_name,
+        input_s3_data_location=input_s3_dir,
+        train_instance_count=1,
+        train_instance_type=ec2_type,
+        train_volume_size=volume_size,
+        train_max_run=time_out,
+        output_path=output_s3_dir,
+        hyperparameters=hyperparams_dict
+    )
+
+    return s3_model_location
+
+
 @click.command()
 @click.option(u"-d", u"--dir", required=False, default='.', help="Path to sagify module")
 @click.option(
@@ -105,18 +123,8 @@ def train(dir, input_s3_dir, output_s3_dir, hyperparams_file, ec2_type, volume_s
     logger.info(ASCII_LOGO)
     logger.info("Started training on SageMaker...\n")
 
-    config = _read_config(dir)
-    hyperparams_dict = _read_hyperparams_config(hyperparams_file) if hyperparams_file else None
-    sage_maker_client = sagemaker.SageMakerClient(config.aws_profile, config.aws_region)
-    s3_model_location = sage_maker_client.train(
-        image_name=config.image_name,
-        input_s3_data_location=input_s3_dir,
-        train_instance_count=1,
-        train_instance_type=ec2_type,
-        train_volume_size=volume_size,
-        train_max_run=time_out,
-        output_path=output_s3_dir,
-        hyperparameters=hyperparams_dict
+    s3_model_location = train_helper(
+        dir, input_s3_dir, output_s3_dir, hyperparams_file, ec2_type, volume_size, time_out
     )
 
     logger.info("Training on SageMaker succeeded")
